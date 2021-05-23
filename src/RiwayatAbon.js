@@ -158,7 +158,7 @@ class RiwayatAbon extends Component {
                 <StatusBar translucent backgroundColor="rgba(0,0,0,0.4)"/>
                 <Header
                     containerStyle={{
-                        height: 80,
+                        height: 95,
                     }}
                     statusBarProps={{barStyle: 'light-content'}}
                     centerComponent={{text: 'Riwayat Absen', style: {color: '#fff', fontSize: 16, fontWeight: 'bold'}}}

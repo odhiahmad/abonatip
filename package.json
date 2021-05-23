@@ -37,7 +37,7 @@
     "react-native-calendar-picker": "^7.0.0",
     "react-native-camera": "^3.39.0",
     "react-native-datepicker": "^1.7.2",
-    "react-native-elements": "^3.0.0-alpha.1",
+    "react-native-elements": "^3.4.1",
     "react-native-gesture-handler": "~1.8.0",
     "react-native-paper": "^4.7.2",
     "react-native-picker-select": "^3.0.1",

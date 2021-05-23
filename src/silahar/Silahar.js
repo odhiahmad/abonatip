@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Container, Fab} from 'native-base';
-import {Header} from "react-native-elements";
+
+import {Header,FAB} from "react-native-elements";
 import {
+    Button,
     Alert,
     Dimensions,
     FlatList,
@@ -11,7 +12,8 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
+    SafeAreaView
 } from 'react-native';
 import {LinearGradient} from "expo-linear-gradient";
 import Icon from 'react-native-vector-icons/FontAwesome5';
@@ -253,7 +255,7 @@ function Silahar({navigation}) {
     }
 
     return (
-        <Container>
+        <SafeAreaView style={{flex: 1}}>
             <Modal
                 propagateSwipe={true}
                 animationInTiming="300"
@@ -470,19 +472,20 @@ function Silahar({navigation}) {
                         renderItem={renderRow}
                         keyExtractor={(item, index) => index.toString()}
                         data={data.data}/>}
-                <Fab
-                    // active={setActive(!active)}
-                    direction="up"
-                    containerStyle={{}}
+                <FAB
+                    
+                   
+                    
                     style={{backgroundColor: '#5067FF'}}
-                    position="bottomRight"
+                    placement="right"
                     onPress={modalTambahAktif}
                 >
                     <Icon name={'plus'} size={16} style={{color: '#74C6F4', textAlign: 'center'}}/>
-                </Fab>
+                </FAB>
 
             </View>
-        </Container>
+            </SafeAreaView>
+       
     );
 
 }

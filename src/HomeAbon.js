@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import ErrorState from "./components/ErrorState";
 import moment from 'moment';
 import {_baseURL_} from "../constant";
+import COLORS from "./const/colors";
 
 var g = null;
 var m = moment();
@@ -203,13 +204,14 @@ class HomeAbon extends Component {
 
         return (
             <View style={{flex:1, backgroundColor:'white'}}>
-                <StatusBar translucent backgroundColor="rgba(0,0,0,0.4)"/>
+                <StatusBar translucent backgroundColor={COLORS.white}/>
                 <Header
                     containerStyle={{
-                        height:80,
+                        height:95,
+                        backgroundColor:COLORS.white
                     }}
                     statusBarProps={{barStyle: 'light-content'}}
-                    leftComponent={{text: 'Dashboard', style: {color: '#fff', fontSize: 16, fontWeight: 'bold'}}}
+                    centerComponent={{text: 'Dashboard', style: {color: COLORS.dark, fontSize: 16, fontWeight: 'bold'}}}
                 />
                 <ScrollView
                     style={{paddingBottom: 200}}
@@ -220,62 +222,7 @@ class HomeAbon extends Component {
                         />
                     }>
 
-                    <View style={{
-                        paddingHorizontal: 5,
-                        marginTop:10,
-                        marginBottom:10,
-                    }}>
-                        <TouchableOpacity
-                            onPress={() => navigate("AmbilAbsen", {absen_type: this.state.tap_in ? 2 : 1})}>
-
-                            <LinearGradient
-                                colors={['#7868e6', '#b8b5ff']}
-                                style={{
-                                    // backgroundColor:'#7868e6',
-                                    borderRadius: 10,
-                                    paddingHorizontal: 20,
-                                    paddingVertical: 20,
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    shadowOffset: {width: 2, height: 2,},
-                                    shadowColor: '#e0e0e0',
-                                    shadowOpacity: 1.0,
-                                    elevation: 1
-                                }}
-                                start={{x: 0, y: 0}} end={{x: 1, y: 1}}>
-                                <Icon name={'user'} size={61} style={{color: '#74C6F4', textAlign: 'center'}}/>
-                                <View style={{flexShrink: 1, marginLeft: 20}}>
-                                    <Text style={{fontSize: 17, color: '#fff'}}>Selamat {this.state.greeting}, {this.state.nama_lengkap}</Text>
-                                </View>
-                            </LinearGradient>
-                        </TouchableOpacity>
-                    </View>
-                    <View style={styles.wrapper}>
-                        <TouchableOpacity
-                            onPress={() => navigate("AmbilAbsen", {absen_type: this.state.tap_in ? 2 : 1})}>
-
-                            <LinearGradient
-                                colors={['#7868e6', '#b8b5ff']}
-                                style={{
-                                    borderRadius: 10,
-                                    paddingHorizontal: 20,
-                                    paddingVertical: 20,
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    shadowOffset: {width: 2, height: 2,},
-                                    shadowColor: '#e0e0e0',
-                                    shadowOpacity: 1.0,
-                                    elevation: 1
-                                }}
-                                start={{x: 0, y: 0}} end={{x: 1, y: 1}}>
-                                <Icon name={'fingerprint'} size={61} style={{color: '#74C6F4', textAlign: 'center'}}/>
-                                <View style={{flexShrink: 1, marginLeft: 20}}>
-                                    <Text style={{fontSize: 17, color: '#fff'}}>Tekan tombol untuk mengambil
-                                        absen {this.state.tap_in ? 'keluar' : 'masuk'}</Text>
-                                </View>
-                            </LinearGradient>
-                        </TouchableOpacity>
-                    </View>
+                   
                     {/*<ListItem bottomDivider>*/}
                     {/*    <Icon name='user' color='gray'/>*/}
                     {/*    <ListItem.Content>*/}
@@ -294,7 +241,7 @@ class HomeAbon extends Component {
                             }}>
                                 <Text style={{
                                     fontSize: 42,
-                                    color: '#1095E8',
+                                    color: COLORS.primary,
                                     fontWeight: 'bold'
                                 }}>{this.state.currentTime}</Text>
                                 <Text style={{paddingBottom: 20, fontSize: 20}}>{this.state.currentDay}</Text>
@@ -316,7 +263,7 @@ class HomeAbon extends Component {
                                         {
                                             this.state.tap_in === null ?
                                                 <Icon name={'fingerprint'} size={38}
-                                                      style={{color: '#74C6F4', textAlign: 'center'}}/>
+                                                      style={{color: COLORS.primary, textAlign: 'center'}}/>
                                                 : <Text style={{fontSize: 27}}>{this.state.tap_in}</Text>
 
                                         }
@@ -332,7 +279,7 @@ class HomeAbon extends Component {
                                         {
                                             this.state.tap_out === null ?
                                                 <Icon name={'fingerprint'} size={38}
-                                                        style={{color: '#74C6F4', textAlign: 'center'}}/>
+                                                        style={{color: COLORS.primary, textAlign: 'center'}}/>
                                                 : <Text style={{fontSize: 27}}>{this.state.tap_out}</Text>
                                         }
                                         <Text style={{fontSize: 17, marginTop: 5}}>Absen Keluar</Text>
@@ -341,6 +288,62 @@ class HomeAbon extends Component {
                             </View>
                         </View>
 
+                    </View>
+                    <View style={{
+                        paddingHorizontal: 5,
+                        marginTop:10,
+                        marginBottom:10,
+                    }}>
+                        <TouchableOpacity
+                            onPress={() => navigate("AmbilAbsen", {absen_type: this.state.tap_in ? 2 : 1})}>
+
+                            <View
+                               
+                                style={{
+                                    backgroundColor:COLORS.primary,
+                                    borderRadius: 10,
+                                    paddingHorizontal: 20,
+                                    paddingVertical: 20,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    shadowOffset: {width: 2, height: 2,},
+                                    shadowColor: '#e0e0e0',
+                                    shadowOpacity: 1.0,
+                                    elevation: 1
+                                }}
+                                >
+                                <Icon name={'user'} size={61} style={{color: COLORS.white, textAlign: 'center'}}/>
+                                <View style={{flexShrink: 1, marginLeft: 20}}>
+                                    <Text style={{fontSize: 17, color: '#fff'}}>Selamat {this.state.greeting}, {this.state.nama_lengkap}</Text>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.wrapper}>
+                        <TouchableOpacity
+                            onPress={() => navigate("AmbilAbsen", {absen_type: this.state.tap_in ? 2 : 1})}>
+
+                            <View
+                                style={{
+                                    backgroundColor:COLORS.primary,
+                                    borderRadius: 10,
+                                    paddingHorizontal: 20,
+                                    paddingVertical: 20,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    shadowOffset: {width: 2, height: 2,},
+                                    shadowColor: '#e0e0e0',
+                                    shadowOpacity: 1.0,
+                                    elevation: 1
+                                }}
+                                >
+                                <Icon name={'fingerprint'} size={61} style={{color: COLORS.white, textAlign: 'center'}}/>
+                                <View style={{flexShrink: 1, marginLeft: 20}}>
+                                    <Text style={{fontSize: 17, color: '#fff'}}>Tekan tombol untuk mengambil
+                                        absen {this.state.tap_in ? 'keluar' : 'masuk'}</Text>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
                     </View>
 
                 </ScrollView>
@@ -357,7 +360,7 @@ const styles = StyleSheet.create({
     },
     wrapper: {
         paddingHorizontal: 5,
-        marginBottom:10
+        marginBottom:0
     },
     wrapperHeader: {
         paddingHorizontal: 5,
@@ -370,7 +373,7 @@ const styles = StyleSheet.create({
         color: '#2D3137'
     },
     boxStatus: {
-        backgroundColor: '#F8F9FA',
+        backgroundColor: COLORS.white,
         padding: 30,
         borderRadius: 10,
         marginVertical: 20,

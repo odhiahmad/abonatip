@@ -115,29 +115,7 @@ class AmbilAbsen extends Component {
             filename = result.name;
             type = result.name.split('.').reverse()[0];
 
-            let details = {
-                nip: token,
-                image_tag: filename,
-                image_data: result.uri,
-                lattitude: this.state.lat,
-                longitude: this.state.long,
-                store_device_id: Expo.Constants.deviceId,
-                device_model: Device.modelName,
-                device_device: Device.brand,
-                device_hardware: Device.manufacturer
-            };
-            let formBody = [];
-
-
-            console.log("data details : "+result)
-
-            for (let property in details) {
-                let encodedKey = encodeURIComponent(property);
-                let encodedValue = encodeURIComponent(details[property]);
-                formBody.push(encodedKey + "=" + encodedValue);
-            }
-            formBody = formBody.join('&');
-            // -------------
+        
 
             this.setState({
                 isLoading: true
@@ -147,8 +125,18 @@ class AmbilAbsen extends Component {
             fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }, body: formBody
+                    'Content-Type': 'multipart/form-data;'
+                }, body:JSON.stringify({
+                    nip: token,
+                    image_tag: filename,
+                    image_data: result,
+                    lattitude: this.state.lat,
+                    longitude: this.state.long,
+                    store_device_id: Expo.Constants.deviceId,
+                    device_model: Device.modelName,
+                    device_device: Device.brand,
+                    device_hardware: Device.manufacturer
+                })
             })
                 .then((response) => response.json())
                 .then((responseJson) => {
@@ -438,16 +426,18 @@ class AmbilAbsen extends Component {
                     loading={this.state.isLoading}/>
                 <StatusBar translucent backgroundColor="rgba(0,0,0,0.4)"/>
                 <Header
+                placement="left"
                     containerStyle={{
-                        height:80,
+                        height:95,
                         justifyContent: 'space-around',
                     }}
                     statusBarProps={{barStyle: 'light-content'}}
-                    leftComponent={<TouchableOpacity
+                    leftComponent={
+                    <TouchableOpacity
                         onPress={() => {
                             this.props.navigation.pop()
                         }}>
-                        <Icon size={27} name='arrow-back' color='#fff'
+                        <IconB size={20} name='arrow-back-ios' color='#fff'
                         /></TouchableOpacity>}
                     centerComponent={{text: 'Ambil Absen', style: {color: '#fff', fontSize: 16, fontWeight: 'bold'}}}
                 />

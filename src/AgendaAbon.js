@@ -5,6 +5,7 @@ import CalendarPicker from 'react-native-calendar-picker';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import {Header} from "react-native-elements";
 import {LinearGradient} from "expo-linear-gradient";
+import COLORS from "./const/colors";
 
 class AgendaAbon extends Component {
     constructor(props) {
@@ -58,10 +59,11 @@ class AgendaAbon extends Component {
                 <StatusBar translucent backgroundColor="rgba(0,0,0,0.4)"/>
                 <Header
                     containerStyle={{
-                        height:80,
+                        height:95,
+                        backgroundColor:COLORS.white
                     }}
                     statusBarProps={{barStyle: 'light-content'}}
-                    centerComponent={{text: 'Agenda', style: {color: '#fff', fontSize: 16, fontWeight: 'bold'}}}
+                    centerComponent={{text: 'Agenda', style: {color: COLORS.dark, fontSize: 16, fontWeight: 'bold'}}}
                 />
                 {/* Agenda */}
                 {/* Kalender */}
@@ -75,10 +77,10 @@ class AgendaAbon extends Component {
                             this.props.navigation.push('RiwayatIzin')
                         }}>
 
-                        <LinearGradient
-                            colors={['#7868e6', '#b8b5ff']}
+                       <View
+                          
                             style={{
-                                // backgroundColor:'#7868e6',
+                                backgroundColor:COLORS.primary,
                                 borderRadius: 10,
                                 paddingHorizontal: 20,
                                 paddingVertical: 20,
@@ -89,12 +91,12 @@ class AgendaAbon extends Component {
                                 shadowOpacity: 1.0,
                                 elevation: 1
                             }}
-                            start={{x: 0, y: 0}} end={{x: 1, y: 1}}>
-                            <Icon name={'history'} size={61} style={{color: '#74C6F4', textAlign: 'center'}}/>
+                           >
+                            <Icon name={'history'} size={61} style={{color: COLORS.white, textAlign: 'center'}}/>
                             <View style={{flexShrink: 1, marginLeft: 20}}>
                                 <Text style={{fontSize: 22, color: '#fff'}}>Pilih Riwayat Izin</Text>
                             </View>
-                        </LinearGradient>
+                        </View>
                     </TouchableOpacity>
                 </View>
                 <CalendarPicker

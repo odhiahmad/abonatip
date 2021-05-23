@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useReducer} from 'react';
-import {StyleSheet} from 'react-native';
+import {StyleSheet,View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createStackNavigator} from '@react-navigation/stack';
@@ -30,6 +30,7 @@ import {AuthContext} from './src/utils/authContext';
 import {initialState, reducer} from "./src/reducers/reducer";
 
 import AsyncStorage from '@react-native-community/async-storage';
+import COLORS from './src/const/colors';
 
 
 const Stack = createStackNavigator();
@@ -269,17 +270,18 @@ function BottomTabStack() {
         <Tab.Navigator
             tabBarOptions={{
                 style: {
-                    // backgroundColor:'#7868e6',
-                    fontSize:20,
-                    paddingBottom:15,
-                    height: 80,
-                    // borderTopLeftRadius:20,
-                    // borderTopRightRadius:20,
-                    // zIndex: 2,
-                    // marginTop:-10
+                    paddingBottom: 15,
+                    height: 70,
+                    fontSize: 20,
+                    borderTopWidth: 0,
+                    elevation: 0,
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                    zIndex: 2,
+                    marginTop: -10
                 },
                 activeTintColor: '#7868e6',
-                inactiveTintColor: '#b8b5ff',
+                inactiveTintColor: COLORS.primary,
 
             }}>
             <Tab.Screen name="Home" color={'#00AEEF'} component={StackHome}
@@ -302,7 +304,22 @@ function BottomTabStack() {
                         options={{
                             tabBarLabel: 'Riwayat',
                             tabBarIcon: ({color, size}) => (
-                                <IconC name={'list-alt'} color={color} size={28}/>
+                                <View
+                            style={{
+                                height: 60,
+                                width: 60,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                backgroundColor: COLORS.white,
+                                borderColor: COLORS.primary,
+                                borderWidth: 2,
+                                borderRadius: 30,
+                                top: -15,
+                                elevation: 5,
+                            }}>
+                            <IconC name={'list-alt'} color={color} size={28}/>
+                        </View>
+                               
                             ),
                         }}
             />

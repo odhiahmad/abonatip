@@ -224,6 +224,9 @@ class RiwayatIzin extends Component {
                     loading={this.state.isLoading}/>
                 <Header
                     statusBarProps={{barStyle: 'light-content'}}
+                    style={{
+                        height:90
+                    }}
                     leftComponent={<TouchableOpacity
                         onPress={() => {
                             this.props.navigation.pop()
