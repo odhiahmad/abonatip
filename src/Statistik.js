@@ -32,7 +32,7 @@ if (currentHour >= split_sore && currentHour < split_malam) {
 const {width, height} = Dimensions.get('screen');
 const cardWidth = width / 1.83;
 const cardWidthInfo = width / 1.03;
-class HomeAbon extends Component {
+class Statistik extends Component {
     static navigationOptions = {
         header: null
     }
@@ -159,30 +159,29 @@ class HomeAbon extends Component {
                             tap_out:false
                         })
                     }else{
-                      if(json.dataUser.role == 'CS'){
-                        if(json.dataAbsen[0].jam_check2 != null){
-                            this.setState({
-                                tap_in:false,
-                                cek1:false,
-                                cek2:false,
-                                tap_out:true
-                            })
-                        }else if(json.dataAbsen[0].jam_check1 != null){
-                            this.setState({
-                                tap_in:false,
-                                cek1:false,
-                                cek2:true,
-                                tap_out:false
-                            })
-                        }else if(json.dataAbsen[0].jam_check1 == null){
+                      
+                        if(json.dataAbsen.jam_cek1 == null){
                             this.setState({
                                 tap_in:false,
                                 cek1:true,
                                 cek2:false,
                                 tap_out:false
                             })
+                        }else if(json.dataAbsen.jam_cek1 != null){
+                            this.setState({
+                                tap_in:false,
+                                cek1:false,
+                                cek2:true,
+                                tap_out:false
+                            })
+                        }else if(json.dataAbsen.jam_cek2 != null){
+                            this.setState({
+                                tap_in:false,
+                                cek1:false,
+                                cek2:false,
+                                tap_out:true
+                            })
                         }
-
                         this.setState({
                             isLoading: false,
                             nip: json.dataUser.username,
@@ -191,25 +190,18 @@ class HomeAbon extends Component {
                             dataAbsenLimit:json.dataAbsenLimit,
                             dataUser:json.dataUser,
                         })
-
-                      }else{
-                        this.setState({
-                            isLoading: false,
-                            nip: json.dataUser.username,
-                            nama_lengkap: json.dataUser.nama,
-                            dataAbsen:json.dataAbsen[0],
-                            dataAbsenLimit:json.dataAbsenLimit,
-                            dataUser:json.dataUser,
-                            tap_in:false,
-                            cek1:false,
-                            cek2:false,
-                            tap_out:true
-                        })
-                      }
                       
                     }
 
-            
+
+                   
+
+                    console.log(this.state.dataAbsen.jam_masuk);
+                    this.setState({
+                        isLoading: false,
+                        nip: json.dataUser.username,
+                        nama_lengkap: json.dataUser.nama,
+                    })
                 } else {
                     alert('Sesi anda telah habis, silahkan Logout dan Login kembali')
                     this.setState({
@@ -259,177 +251,55 @@ class HomeAbon extends Component {
 
         return (
             <View style={{flex:1, backgroundColor:'white'}}>
-                {/* <StatusBar translucent backgroundColor={COLORS.white}/>
+                <StatusBar translucent backgroundColor={COLORS.white}/>
                 <Header
                     containerStyle={{
                         height:95,
                         backgroundColor:COLORS.white,
                         borderBottomColor:'white',
+                        elevation: 1,
+                        shadowColor: '#000',
+                        shadowOffset: {width: 0, height: 1},
+                        shadowOpacity: 0.5,
+                        shadowRadius: 1,
+                       
                     }}
                     statusBarProps={{barStyle: 'light-content'}}
-                    centerComponent={{text: 'Dashboard', style: {color: COLORS.dark, fontSize: 16, fontWeight: 'bold'}}}
-                /> */}
-                <ScrollView
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={this.state.refreshing}
-                            onRefresh={this._onRefresh}
-                        />
-                    }>
-
-                    <View style={{flexDirection: 'row',paddingHorizontal:20,marginTop:40}}>
-                        <Image style={{width: 100, height: 100}}
-                               source={require('../assets/icon.png')}/>
-                    </View>
-                    <View style={{paddingHorizontal:20,marginTop:5}}>
-                        <Text style={{fontSize: 26}}>Absensi Online Project X </Text>
-                        <Text style={{fontSize: 20,fontWeight: 'bold',color:COLORS.primary}}>
-                            Selamat {this.state.greeting}, {this.state.nama_lengkap}
-                        </Text>
-                    </View>
-                    <View style={styles.wrapper}>
-                        <View style={styles.boxStatus}>
-                            <View style={{
-                                alignItems: 'center',
-                               
-                               
-                            }}>
-                                <Text style={{
-                                    fontSize: 42,
-                                    color: COLORS.primary,
-                                    fontWeight: 'bold'
-                                }}>{this.state.currentTime}</Text>
-                                <Text style={{paddingBottom: 20, fontSize: 20}}>{this.state.currentDay}</Text>
-                            </View>
-                           
-                        </View>
-
-                    </View>
-                    <View style={{flexDirection:'row',padding:10,marginTop:-15}}>
-                    <TouchableOpacity style={styles.cardAbsen} onPress={() => this.state.tap_in == true ? navigate("AmbilAbsen", {absen_type: 1,jam_masuk:''}) : ''}>
-                       
-                        {this.state.dataAbsen.length == 0 ?
-                        <View>
-                            <View style={{alignItems: 'center', padding: 25}}>
-                                <Icon name={'fingerprint'} size={90}
-                                                      style={{color: COLORS.white, textAlign: 'center'}}/>
-                                                      
-                            </View>
-                            <View style={{marginHorizontal: 15}}>
-                                <Text style={{fontSize: 16, color: COLORS.white,textAlign:'center'}}>Absen Masuk</Text>
-                            </View>
-                        </View>:
-                        <View>
-                             <Text style={{fontSize: 16, color: COLORS.white,textAlign:'center'}}>Absen Masuk</Text>
-                             <Text style={{fontSize: 16,fontWeight:'bold', color: COLORS.white,textAlign:'center'}}>{this.state.dataAbsen.jam_masuk}</Text>
-                        </View>
-                        }
-                       
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.cardAbsen} onPress={() => this.state.tap_out == true ? navigate("AmbilAbsen", {absen_type: 2,jam_masuk:this.state.dataAbsen.jam_masuk}):''}>
-                    {this.state.dataAbsen.jam_keluar == null ?
-                        <View>
-                            <View style={{alignItems: 'center', padding: 25}}>
-                                <Icon name={'fingerprint'} size={90}
-                                                      style={{color: COLORS.white, textAlign: 'center'}}/>
-                                                      
-                            </View>
-                            <View style={{marginHorizontal: 15}}>
-                                <Text style={{fontSize: 16, color: COLORS.white,textAlign:'center'}}>Absen Keluar</Text>
-                            </View>
-                        </View>:
-                        <View>
-                             <Text style={{fontSize: 16, color: COLORS.white,textAlign:'center'}}>Absen Keluar</Text>
-                             <Text style={{fontSize: 16,fontWeight:'bold', color: COLORS.white,textAlign:'center'}}>{this.state.dataAbsen.jam_keluar}</Text>
-                        </View>
-                        }
-                    </TouchableOpacity>
-                    </View>
-                    {this.state.dataUser.role === 'CS' ? 
-                    <View style={{flexDirection:'row',padding:10,marginTop:-15}}>
-                    <TouchableOpacity style={styles.cardAbsen} onPress={() => this.state.cek1 == true ? navigate("AmbilAbsen", {absen_type: 3,jam_masuk:''}) : ''}>
-                       
-                        {this.state.dataAbsen.jam_check1 == null ?
-                        <View>
-                            <View style={{alignItems: 'center', padding: 25}}>
-                                <Icon name={'fingerprint'} size={90}
-                                                      style={{color: COLORS.white, textAlign: 'center'}}/>
-                                                      
-                            </View>
-                            <View style={{marginHorizontal: 15}}>
-                                <Text style={{fontSize: 16, color: COLORS.white,textAlign:'center'}}>Cek Absen 1</Text>
-                            </View>
-                        </View>:
-                        <View>
-                             <Text style={{fontSize: 16, color: COLORS.white,textAlign:'center'}}>Cek Absen 1</Text>
-                             <Text style={{fontSize: 16,fontWeight:'bold', color: COLORS.white,textAlign:'center'}}>{this.state.dataAbsen.jam_check1}</Text>
-                        </View>
-                        }
-                       
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity style={styles.cardAbsen} onPress={() => this.state.cek2 == true ? navigate("AmbilAbsen", {absen_type: 4,jam_masuk:this.state.dataAbsen.jam_masuk}):''}>
-                    {this.state.dataAbsen.jam_check2 == null ?
-                        <View>
-                            <View style={{alignItems: 'center', padding: 25}}>
-                                <Icon name={'fingerprint'} size={90}
-                                                      style={{color: COLORS.white, textAlign: 'center'}}/>
-                                                      
-                            </View>
-                            <View style={{marginHorizontal: 15}}>
-                                <Text style={{fontSize: 16, color: COLORS.white,textAlign:'center'}}>Cek Absen 2</Text>
-                            </View>
-                        </View>:
-                        <View>
-                             <Text style={{fontSize: 16, color: COLORS.white,textAlign:'center'}}>Cek Absen 2</Text>
-                             <Text style={{fontSize: 16,fontWeight:'bold', color: COLORS.white,textAlign:'center'}}>{this.state.dataAbsen.jam_check2}</Text>
-                        </View>
-                        }
-                    </TouchableOpacity>
-                    </View>
-                    :<View></View>}
-
+                    centerComponent={{text: 'Absensi Online Atip', style: {color: COLORS.dark, fontSize: 16, fontWeight: 'bold'}}}
+                />
                     <View style={styles.cardInfo}>
                         <View style={{justifyContent: 'center',
                                         alignItems: 'center', padding: 20,backgroundColor:'white',width:'35%'}}>
-                            <Icon name={'history'} size={80}
+                            <Icon name={'align-left'} size={80}
                                                       style={{color: COLORS.primary, textAlign: 'center'}}/>
-                              <Text style={{fontSize: 12,fontWeight:'600', color: COLORS.primary,textAlign:'center',marginTop:20}}>Riwayat Absen Terakhir</Text>
+                              <Text style={{fontSize: 12,fontWeight:'600', color: COLORS.primary,textAlign:'center',marginTop:20}}>Total Terlambat</Text>
                         </View>
                         <View style={{justifyContent: 'center',alignItems: 'center',width:'65%'}}>
-                            {this.state.dataAbsenLimit.length != 0 ?
-                          
-                                <FlatList
-                                    style={{marginTop:20}}
-                                   data={this.state.dataAbsenLimit}
-                                   renderItem={({item}) =>      
-                                       <Text style={{fontSize: 14, color: COLORS.white,textAlign:'center'}}>Masuk {item.jam_masuk}, keluar {item.jam_keluar}</Text>
-                                   }
-                                   listKey={(item, index) => index.toString()}
-                                   keyExtractor={(item, index) => index.toString()}
-                               />
-                              :
-                              <Text style={{fontSize: 14, color: COLORS.white,textAlign:'center'}}>Tidak ada riwayat absen</Text>
-                            }
-                             
+                             <FlatList
+                             style={{marginTop:20}}
+                                data={this.state.dataAbsenLimit}
+                                renderItem={({item}) =>      
+                                    <Text style={{fontSize: 14, color: COLORS.white,textAlign:'center'}}>Masuk {item.jam_masuk}, keluar {item.jam_keluar}</Text>
+                                }
+                                listKey={(item, index) => index.toString()}
+                                keyExtractor={(item, index) => index.toString()}
+                            />
                             
                         </View>
                     </View>
-                   
                     
 
-                </ScrollView>
+                
             </View>
         );
     }
 }
 
-export default HomeAbon;
+export default Statistik;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: 'center'
+        alignItems: 'center',
     },
     wrapper: {
         paddingHorizontal: 5,
@@ -476,7 +346,8 @@ const styles = StyleSheet.create({
         height: 160,
         width: cardWidthInfo,
         marginHorizontal: 5,
-        marginBottom: 20,
+        marginTop:10,
+        marginBottom: 0,
         borderRadius: 15,
         elevation: 13,
         shadowColor: '#000',

@@ -1,1 +1,1 @@
-export const _baseURL_ = 'http://abon1.sumbarprov.go.id/api/'
+export const _baseURL_ = 'http://192.168.100.85:3000/api/'

@@ -9,9 +9,9 @@ import {useTheme} from 'react-native-paper';
 import LoaderModal from "./components/loader";
 import AsyncStorage from '@react-native-community/async-storage';
 import Constants from 'expo-constants';
-
 import * as Device from 'expo-device';
 import {_baseURL_} from '../constant';
+import COLORS from './const/colors';
 
 const LoginActivity = ({}) => {
 
@@ -96,55 +96,35 @@ const LoginActivity = ({}) => {
             loading: true
         })
 
-        let details = {
-            username: userName,
-            password: password,
-            device_id: data.device_id,
-            device_model: data.device_name,
-            device_device: data.device_id,
-            device_hardware: data.device_hardware,
+       
 
-        };
-        let formBody = [];
-        for (let property in details) {
-            let encodedKey = encodeURIComponent(property);
-            let encodedValue = encodeURIComponent(details[property]);
-            formBody.push(encodedKey + "=" + encodedValue);
-        }
-        formBody = formBody.join('&');
-
-        return fetch(_baseURL_ + 'login', {
+        return fetch(_baseURL_ + 'users/login', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/json'
             },
-            body: formBody
+            body: JSON.stringify({
+                username: userName,
+                password: password,
+                device_id: data.device_id,
+                device_name: data.device_name,
+                device_device: data.device_id,
+                device_hardware: data.device_hardware,
+            })
         }).then((response) => response.json())
             .then((json) => {
-                if (json.response == 1) {
+                if (json.berhasil == true) {
 
-                    AsyncStorage.setItem('pegawai', json.result[0].pegawai);
-                    AsyncStorage.setItem('token', json.result[0].pegawai);
-                    AsyncStorage.setItem('username', json.result[0].username);
-                    AsyncStorage.setItem('nama_asn', json.result[0].nama_asn);
-                    AsyncStorage.setItem('opd', json.result[0].opd);
-                    AsyncStorage.setItem('nm_opd', json.result[0].nm_opd);
-                    AsyncStorage.setItem('sub_opd', json.result[0].sub_opd);
-                    AsyncStorage.setItem('nm_sub_opd', json.result[0].nm_sub_opd);
-                    AsyncStorage.setItem('jabatan', json.result[0].jabatan);
-                    AsyncStorage.setItem('nip', json.result[0].nip);
-                    AsyncStorage.setItem('id_eselon', json.result[0].id_eselon);
-                    AsyncStorage.setItem('eselon', json.result[0].eselon);
-                    AsyncStorage.setItem('pangkat', json.result[0].pangkat);
-                    AsyncStorage.setItem('jenjang', json.result[0].jenjang);
+                   
 
                     AsyncStorage.setItem('store_device_id', data.device_id);
                     AsyncStorage.setItem('device_model', data.device_name);
                     AsyncStorage.setItem('device_device', data.device_device);
                     AsyncStorage.setItem('device_hardware', data.device_hardware);
+                    AsyncStorage.setItem('token', json.token);
 
                     let masuk = true
-                    let token = json.result[0].pegawai
+                    let token = json.token
 
                     signIn({masuk, token})
 
@@ -181,20 +161,18 @@ const LoginActivity = ({}) => {
             <LoaderModal
                 loading={data.loading}/>
             <StatusBar backgroundColor='#009387' barStyle="light-content"/>
-            <View style={styles.header}>
+            {/* <View style={styles.header}>
                 <Text style={styles.text_header}>Selamat Datang!</Text>
                 <Text style={styles.text_header1}>Absensi Online Kab. Pesisir Selatan</Text>
-            </View>
+            </View> */}
             <Animatable.View
                 animation="fadeInUpBig"
-
                 style={[styles.footer, {
-                    backgroundColor: colors.background
-                }]}
-            >
-                <View style={{alignItems:'center',marginBottom:40}}>
-                    <Image style={{width: 120, height: 120}}
-                           source={require('../assets/icon.png')}/>
+                    backgroundColor: COLORS.white
+                }]}>
+                <View style={{alignItems:'center',justifyContent:'center'}}>
+                    <Image style={{width: 70, height: 120}}
+                           source={require('../assets/logoabon.png')}/>
                 </View>
                 <Text style={[styles.text_footer, {
                     color: colors.text
@@ -236,7 +214,7 @@ const LoginActivity = ({}) => {
 
                 <Text style={[styles.text_footer, {
                     color: colors.text,
-                    marginTop: 35
+                    marginTop: 10
                 }]}>Password</Text>
                 <View style={styles.action}>
 
@@ -290,14 +268,11 @@ const LoginActivity = ({}) => {
                             loginHandle(data.username, data.password)
                         }}
                     >
-                        <LinearGradient
-                            colors={['#b8b5ff', '#b8b5ff']}
-                            style={styles.signIn}
-                        >
+                       
                             <Text style={[styles.textSign, {
                                 color: '#fff'
                             }]}>Sign In</Text>
-                        </LinearGradient>
+                       
                     </TouchableOpacity>
 
                     {/*<TouchableOpacity*/}
@@ -322,22 +297,15 @@ export default LoginActivity;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#b8b5ff'
-    },
-    header: {
-        flex: 1,
-        justifyContent: 'flex-end',
-        paddingHorizontal: 20,
-        paddingBottom: 30,
-        paddingTop:30,
+        backgroundColor: COLORS.white,
     },
     footer: {
-        flex: 6,
+        flex: 1,
+        justifyContent:'center',
         backgroundColor: '#7868e6',
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
         paddingHorizontal: 20,
-        paddingVertical: 30
+        paddingVertical: 30,
+        marginBottom:20
     },
     text_header: {
         color: '#fff',
@@ -382,6 +350,7 @@ const styles = StyleSheet.create({
         marginTop: 20
     },
     signIn: {
+        backgroundColor:COLORS.primary,
         width: '100%',
         height: 50,
         justifyContent: 'center',

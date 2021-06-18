@@ -1,16 +1,24 @@
 import React, {Component} from "react";
-import {StyleSheet, Text, TouchableOpacity, View, Alert, StatusBar} from "react-native";
+import {StyleSheet, Text, TouchableOpacity, View, Alert, StatusBar,Dimensions} from "react-native";
 import * as Location from 'expo-location';
 import * as Permissions from 'expo-permissions';
 import {StackActions} from '@react-navigation/native';
 import AsyncStorage from '@react-native-community/async-storage';
 import IconB from 'react-native-vector-icons/MaterialIcons';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Device from 'expo-device';
 import {_baseURL_} from "../constant";
-import {BottomSheet, Header, Icon, ListItem} from 'react-native-elements';
+import Constants from 'expo-constants';
+import {BottomSheet, Header, ListItem} from 'react-native-elements';
 import LoaderModal from './components/loader';
+import COLORS from "./const/colors";
+import AwesomeAlert from 'react-native-awesome-alerts';
+import jwt_decode from "jwt-decode";
 
+const {width, height} = Dimensions.get('screen');
+const cardWidth = width / 1.83;
+const cardWidthInfo = width / 1.03;
 class AmbilAbsen extends Component {
     constructor(props) {
         super(props)
@@ -28,34 +36,18 @@ class AmbilAbsen extends Component {
             value: null,
             id_koordinat: null,
             qrcode: null,
-
+            pesan:'Pastikan anda berada dilokasi kantor',
+            pesanAbsen:'',
+            lokasi:false,
             isVisible: false,
-            isVisiblePilihan: false
+            isVisiblePilihan: false,
+            jam_masuk:this.props.route.params.jam_masuk,
+
+            showAlertPesan:false,
         }
 
-        AsyncStorage.getItem('opd', (error, result) => {
-            if (result) {
-                this.setState({
-                    opd: result
-                });
-            }
-        });
-        AsyncStorage.getItem('username', (error, result) => {
-            if (result) {
-                this.setState({
-                    username: result
-                });
-            }
-        });
     }
 
-    setBottomSheetVisibility = () => {
-        this.setState({isVisible: !this.state.isVisible});
-    }
-
-    setBottomSheetVisibilityPilihan = () => {
-        this.setState({isVisiblePilihan: !this.state.isVisiblePilihan});
-    }
 
     componentDidMount() {
         this._getLocationAsync();
@@ -73,24 +65,12 @@ class AmbilAbsen extends Component {
         });
     };
 
-    alerSelectDialog = () =>{
+    hideAlertPesan = () => {
+        this.setState({
+            showAlertPesan: false
+        });
+    };
 
-        const {navigate} = this.props.navigation;
-        Alert.alert(
-            'Aksi',
-            'Pilih aksi dalam mengambil absen',
-            [
-                {
-                    text: "Cancel",
-                    onPress: () => console.log("Cancel Pressed"),
-                    style: "cancel"
-                },
-                {text: 'Pilih Dokumen',  onPress: this._pickDocument},
-                {text: 'Foto Selfie',  onPress: () => navigate("TakePhoto",{absen_type: this.state.absen_type, lat: this.state.lat, long: this.state.long})},
-
-            ]
-        )
-    }
 
     _pickFoto = () => {
         const {navigate} = this.props.navigation;
@@ -158,52 +138,44 @@ class AmbilAbsen extends Component {
 
     //Absen Masuk
     tap_absen_in = async () => {
-        this.setState({isVisiblePilihan: !this.state.isVisiblePilihan});
+        const token = await AsyncStorage.getItem('token');
+        var decoded = jwt_decode(token);
         this.setState({
+            showAlert:false,
             isLoading: true
         })
 
-        const device_id = await AsyncStorage.getItem('store_device_id');
-        const device_model = await AsyncStorage.getItem('device_model');
-        const device_device = await AsyncStorage.getItem('device_device');
-        const device_hardware = await AsyncStorage.getItem('device_hardware');
-        let location = await Location.getCurrentPositionAsync({});
-
-        var lat = location.coords.latitude.toString()
-        var latSubstr = lat.substring(0, 10)
-
-        var long = location.coords.longitude.toString()
-        var longSubstr = long.substring(0, 10)
-
-        let details = {
-            nip: this.state.username,
-            id_koordinat: this.state.id_koordinat,
-            lattitude: latSubstr,
-            longitude: longSubstr,
-            store_device_id: Expo.Constants.deviceId,
-            device_model: device_model,
-            device_device: device_device,
-            device_hardware: device_hardware,
-            metode: this.state.qrcode
-        };
-
-        let formBody = [];
-        for (let property in details) {
-            let encodedKey = encodeURIComponent(property);
-            let encodedValue = encodeURIComponent(details[property]);
-            formBody.push(encodedKey + "=" + encodedValue);
-        }
-
-        formBody = formBody.join('&');
-        fetch('http://abon1.sumbarprov.go.id/api/cek_metode', {
+        fetch(_baseURL_+'absen/ambilAbsen', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }, body: formBody
+                'Authorization':'Bearer '+token,
+                'Content-Type': 'application/json'
+            }, body: JSON.stringify({
+                tipe:decoded.result.role,
+                absen:'masuk',
+                id_user:decoded.result.id_user,
+                id_pegawai:decoded.result.id,
+                nama:decoded.result.nama,
+                device_id:Constants.deviceId
+            })
         })
             .then((response) => response.json())
             .then((responseJson) => {
-                this.reset(responseJson.time, responseJson.date, responseJson.catatan);
+                console.log(responseJson)
+                if(responseJson.berhasil == true){
+                    this.setState({
+                        isLoading: false,
+                        pesanAbsen:responseJson.pesan,    
+                    })
+
+                    this.reset(responseJson.tanggal, responseJson.jam);
+                }else{
+                    this.setState({
+                        isLoading: false,
+                        showAlertPesan: true,
+                        pesanAbsen:responseJson.pesan,
+                    })
+                }
             })
             .catch((error) => {
                 console.error(error);
@@ -213,63 +185,149 @@ class AmbilAbsen extends Component {
 
     //Absen Keluar
     tap_absen_out = async () => {
-        this.setState({isVisiblePilihan: !this.state.isVisiblePilihan});
+        const token = await AsyncStorage.getItem('token');
+        var decoded = jwt_decode(token);
         this.setState({
+            showAlert:false,
             isLoading: true
         })
 
-        const device_id = await AsyncStorage.getItem('store_device_id');
-        const device_model = await AsyncStorage.getItem('device_model');
-        const device_device = await AsyncStorage.getItem('device_device');
-        const device_hardware = await AsyncStorage.getItem('device_hardware');
-        let location = await Location.getCurrentPositionAsync({});
-
-        var lat = location.coords.latitude.toString()
-        var latSubstr = lat.substring(0, 10)
-
-        var long = location.coords.longitude.toString()
-        var longSubstr = lat.substring(0, 10)
-
-        let details = {
-            nip: this.state.username,
-            id_koordinat: this.state.id_koordinat,
-            lattitude: latSubstr,
-            longitude: longSubstr,
-            store_device_id: Expo.Constants.deviceId,
-            device_model: device_model,
-            device_device: device_device,
-            device_hardware: device_hardware,
-            metode: this.state.qrcode
-        };
-        console.log("longtu " + location.coords.longitude);
-        console.log("latitude " + location.coords.latitude);
-
-        let formBody = [];
-        for (let property in details) {
-            let encodedKey = encodeURIComponent(property);
-            let encodedValue = encodeURIComponent(details[property]);
-            formBody.push(encodedKey + "=" + encodedValue);
-        }
-
-        formBody = formBody.join('&');
-        this.setState({
-            isLoading: true
+        console.log({
+            tipe:decoded.result.role,
+                absen:'pulang',
+                id_user:decoded.result.id_user,
+                id_pegawai:decoded.result.id,
+                nama:decoded.result.nama,
+                device_id:Constants.deviceId,
+                jam_masuk:this.state.jam_masuk
         })
-
-        const url = _baseURL_ + 'cek_metode'
-        fetch(url, {
-            method: 'POST',
+        fetch(_baseURL_+'absen/ambilAbsen', {
+            method: 'PATCH',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }, body: formBody
+                'Authorization':'Bearer '+token,
+                'Content-Type': 'application/json'
+            }, body: JSON.stringify({
+                tipe:decoded.result.role,
+                absen:'pulang',
+                id_user:decoded.result.id_user,
+                id_pegawai:decoded.result.id,
+                nama:decoded.result.nama,
+                device_id:Constants.deviceId,
+                jam_masuk:this.state.jam_masuk
+            })
         })
             .then((response) => response.json())
             .then((responseJson) => {
-                console.log(responseJson);
-                this.setState({
-                    isLoading: false
-                })
-                this.reset(responseJson.time, responseJson.date);
+                console.log(responseJson)
+                if(responseJson.berhasil == true){
+                    this.setState({
+                        isLoading: false,
+                        pesanAbsen:responseJson.pesan,    
+                    })
+
+                    this.reset(responseJson.tanggal, responseJson.jam);
+                }else{
+                    this.setState({
+                        isLoading: false,
+                        showAlertPesan: true,
+                        pesanAbsen:responseJson.pesan,
+                    })
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+                alert('Anda sedang tidak terhubung ke jaringan internet')
+            });
+    }
+
+    tap_absen_check1 = async () => {
+        const token = await AsyncStorage.getItem('token');
+        var decoded = jwt_decode(token);
+        this.setState({
+            showAlert:false,
+            isLoading: true
+        })
+
+
+        console.log({
+            
+        })
+        fetch(_baseURL_+'absen/ambilAbsen', {
+            method: 'PATCH',
+            headers: {
+                'Authorization':'Bearer '+token,
+                'Content-Type': 'application/json'
+            }, body: JSON.stringify({
+                tipe:'CS',
+                absen:'cek1',
+                id_user:decoded.result.id_user,
+                device_id:Constants.deviceId,
+               
+            })
+        })
+            .then((response) => response.json())
+            .then((responseJson) => {
+                console.log(responseJson)
+                if(responseJson.berhasil == true){
+                    this.setState({
+                        isLoading: false,
+                        pesanAbsen:responseJson.pesan,    
+                    })
+
+                    this.reset(responseJson.tanggal, responseJson.jam);
+                }else{
+                    this.setState({
+                        isLoading: false,
+                        showAlertPesan: true,
+                        pesanAbsen:responseJson.pesan,
+                    })
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+                alert('Anda sedang tidak terhubung ke jaringan internet')
+            });
+    }
+
+    tap_absen_check2 = async () => {
+        console.log('cek2')
+        const token = await AsyncStorage.getItem('token');
+        var decoded = jwt_decode(token);
+        this.setState({
+            showAlert:false,
+            isLoading: true
+        })
+
+        fetch(_baseURL_+'absen/ambilAbsen', {
+            method: 'PATCH',
+            headers: {
+                'Authorization':'Bearer '+token,
+                'Content-Type': 'application/json'
+            }, body: JSON.stringify({
+                tipe:'CS',
+                absen:'cek2',
+                id_user:decoded.result.id_user,
+                device_id:Constants.deviceId,
+                
+            })
+        })
+            .then((response) => response.json())
+            .then((responseJson) => {
+                console.log(responseJson)
+                if(responseJson.berhasil == true){
+                    this.setState({
+                        isLoading: false,
+                        pesanAbsen:responseJson.pesan,    
+                    })
+
+                    this.reset(responseJson.tanggal, responseJson.jam);
+                }else{
+                    this.setState({
+                        isLoading: false,
+                        showAlertPesan: true,
+                        pesanAbsen:responseJson.pesan,
+                    })
+                }
             })
             .catch((error) => {
                 console.error(error);
@@ -279,10 +337,11 @@ class AmbilAbsen extends Component {
 
     //Get Lokasi
     _getLocationAsync = async () => {
+        const token = await AsyncStorage.getItem('token');
         let {status} = await Permissions.askAsync(Permissions.LOCATION);
+   
         this.setState({
             locationStatus: status,
-            isLoading: true
         })
 
         if (status !== 'granted') {
@@ -292,6 +351,7 @@ class AmbilAbsen extends Component {
             });
         } else {
             let location = await Location.getCurrentPositionAsync({});
+            const { mocked } = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest, timeInterval: 1, })
 
             var lat = location.coords.latitude.toString()
             var latSubstr = lat.substring(0, 10)
@@ -299,67 +359,46 @@ class AmbilAbsen extends Component {
             var long = location.coords.longitude.toString()
             var longSubstr = long.substring(0, 10)
 
-            let details = {
-                nip: this.state.username,
-                opd: this.state.opd,
-                lat: latSubstr,
-                long: longSubstr
-            };
-
-            // console.log("uname "+this.state.username);
-            // console.log("opd "+ this.state.opd);
-            // console.log("lat " +location.coords.latitude);
-            // console.log("long "+location.coords.longitude);
-            let formBody = [];
-
-            for (let property in details) {
-                let encodedKey = encodeURIComponent(property);
-                let encodedValue = encodeURIComponent(details[property]);
-                formBody.push(encodedKey + "=" + encodedValue);
-            }
-
-            formBody = formBody.join('&');
-            fetch('http://abon1.sumbarprov.go.id/api/cek_distance', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }, body: formBody
-            })
-                .then((response) => response.json())
-                .then((responseJson) => {
-                    if (responseJson.status == 'success') {
-
-                        this.setState({
-                            distance: responseJson.data[0].distance,
-                            isLoading: false,
-                            lat: latSubstr,
-                            long: longSubstr,
-                            distance_max: responseJson.data[0].distance_max,
-                            qrcode: responseJson.data[0].qrcode,
-                            id_koordinat: responseJson.data[0].id_koordinat,
-                            value: responseJson.data[0].value
-                        })
-                        // console.log("distance "+this.state.distance);
-                        // console.log("value "+ this.state.value);
-                        // console.log("qrcode "+this.state.qrcode);
-                        // console.log("id_koordinat "+ this.state.id_koordinat);
-                    } else {
-                    }
+            if(mocked === true){
+                this.setState({
+                    lokasi:false,
+                    pesan:'Anda terdeteksi menggunakan fake GPS',
+                    isLoading: false,
                 })
-                .catch((error) => {
-                    console.error(error);
-                    alert('Anda sedang tidak terhubung ke jaringan internet')
-                });
-
-            this.setState({
-                locationResult: JSON.stringify(location),
-                lat: latSubstr,
-                long: longSubstr,
-            });
+            }else{
+                fetch(_baseURL_+'absen/getLokasi', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization':'Bearer '+token,
+                        'Content-Type': 'application/json'
+                    }, body: JSON.stringify({
+                        lat: latSubstr,
+                        long: longSubstr
+                    })
+                }).then((response) => response.json()).then((responseJson) => {
+                        if (responseJson.berhasil == true) {
+                            this.setState({
+                                isLoading: false, 
+                                lokasi:responseJson.berhasil,
+                                pesan:responseJson.pesan
+                            })
+                        } else {
+                            this.setState({
+                                lokasi:responseJson.berhasil,
+                                pesan:responseJson.pesan,
+                                isLoading: false,
+                            })
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                        alert('Anda sedang tidak terhubung ke jaringan internet')
+                    });
+            }
         }
     };
 
-    reset(time, date) {
+    reset(date,time) {
         this.props.navigation.dispatch(
             StackActions.replace('SuccessAbsen', {jam: time, tanggal: date}));
     }
@@ -368,58 +407,16 @@ class AmbilAbsen extends Component {
         if (this.state.locationStatus !== 'granted') {
             return (
                 <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20}}>
-                    <IconB name="location-off" size={50} style={{color: '#00AEEF', marginBottom: 20}}/>
+                     <LoaderModal
+                    loading={this.state.isLoading}/>
+                    <IconB name="location-off" size={50} style={{color: COLORS.primary, marginBottom: 20}}/>
                     <Text style={{textAlign: 'center'}}>Kami mendeteksi anda tidak mengaktifkan GPS atau tidak
                         memberikan akses lokasi terhadap aplikasi ini</Text>
                 </View>
             );
         }
 
-        // if (this.state.isLoading) {
-        //     return (
-        //         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-        //             <ActivityIndicator
-        //                 style={styles.indicator}
-        //                 animating={true}
-        //                 size="large"
-        //             />
-        //         </View>
-        //     );
-        // }
 
-
-        const list = [
-            {
-                title: 'Pilih Dokumen',
-                onPress: this._pickDocument
-            },
-            {
-                title: 'Pilih Foto',
-                onPress: this._pickFoto
-            },
-            {
-                title: 'Keluar',
-                containerStyle: {backgroundColor: 'red'},
-                titleStyle: {color: 'white'},
-                onPress: this.setBottomSheetVisibility,
-            },
-        ];
-
-        const listPilihan = [
-            {
-                title: 'Apakah Anda Ingin Mengambil Absen ?',
-            },
-            {
-                title: 'Ya',
-                onPress: this.state.absen_type === 1 ? this.tap_absen_in : this.tap_absen_out
-            },
-            {
-                title: 'Tidak',
-                containerStyle: {backgroundColor: 'red'},
-                titleStyle: {color: 'white'},
-                onPress: this.setBottomSheetVisibilityPilihan,
-            },
-        ];
         return (
             <View style={styles.container}>
                 <LoaderModal
@@ -428,95 +425,100 @@ class AmbilAbsen extends Component {
                 <Header
                 placement="left"
                     containerStyle={{
-                        height:95,
-                        justifyContent: 'space-around',
+                        // borderBottomColor:'white',
+                        backgroundColor:COLORS.white,
+                        height:95
                     }}
-                    statusBarProps={{barStyle: 'light-content'}}
                     leftComponent={
-                    <TouchableOpacity
-                        onPress={() => {
-                            this.props.navigation.pop()
-                        }}>
-                        <IconB size={20} name='arrow-back-ios' color='#fff'
-                        /></TouchableOpacity>}
-                    centerComponent={{text: 'Ambil Absen', style: {color: '#fff', fontSize: 16, fontWeight: 'bold'}}}
+                        <TouchableOpacity
+                        style={{
+                            marginLeft:10,
+                            
+                        }}
+                            onPress={() => {
+                                this.props.navigation.pop()
+                            }}>
+                              <Icon name="chevron-left" size={28} onPress={ () =>this.props.navigation.pop()}/></TouchableOpacity>}
+                    statusBarProps={{barStyle: 'light-content'}}
+                    centerComponent={{text:this.state.absen_type == 1 ? 'Ambil Absen Masuk':'Ambil Absen Keluar', style: {color: 'black', fontSize: 20, fontWeight: 'bold'}}}
+                
                 />
-                <View style={{paddingHorizontal: 20}}>
-                    <View style={styles.boxItemBlue}>
-                        <Text style={styles.textBold}>Absen di Kantor</Text>
-                        <Text style={{fontWeight: '200', color: '#fff', fontSize: 15}}>(Pastikan anda berada di dalam
-                            lingkungan kantor)</Text>
-                        <View>
-                            {
-                                this.state.value == '0' ? (
-                                        <View>
-                                            <Text style={{color: '#fff', fontSize: 15, textAlign: 'center', marginTop: 10}}>Anda
-                                                berada diluar radius area kantor, Jarak anda {this.state.distance} m</Text>
-                                            <TouchableOpacity onPress={this._getLocationAsync}>
-                                                <View style={{
-                                                    borderWidth: 1,
-                                                    borderColor: '#fff',
-                                                    borderRadius: 5,
-                                                    marginTop: 20,
-                                                    padding: 10,
-                                                    alignItems: 'center',
-                                                    flexDirection: 'row',
-                                                    justifyContent: 'center'
-                                                }}>
-                                                    <IconB name="autorenew" size={20} style={{color: '#fff'}}/>
-                                                    <Text style={{color: '#fff', fontSize: 15}}>Cek Ulang GPS</Text>
-                                                </View>
-                                            </TouchableOpacity>
-                                        </View>
-                                    ) :
-                                    (
-                                        <TouchableOpacity
-                                            onPress={this.setBottomSheetVisibilityPilihan}>
-                                            <View style={{
-                                                borderWidth: 1,
-                                                borderColor: '#fff',
-                                                borderRadius: 5,
-                                                marginTop: 20,
-                                                padding: 10,
-                                                alignItems: 'center',
-                                                flexDirection: 'row',
-                                                justifyContent: 'center'
-                                            }}>
-                                                <IconB name="check-box" size={20} style={{color: '#fff'}}/>
-                                                <Text style={{color: '#fff', fontSize: 15}}> Ambil
-                                                    Absen {this.state.absen_type === 1 ? 'Masuk' : 'Keluar'}</Text>
-                                            </View>
-                                        </TouchableOpacity>
-                                    )
-                            }
+                 <View style={styles.cardInfo}>
+                        <View style={{justifyContent: 'center',alignItems: 'center', padding: 20,backgroundColor:'white',width:'35%'}}>
+                            <Icon name={'building'} size={80}
+                                                      style={{color: COLORS.primary, textAlign: 'center'}}/>
+                              <Text style={{fontSize: 12,fontWeight:'600', color: COLORS.primary,textAlign:'center',marginTop:20}}>Absen di Kantor</Text>
+                        </View>
+                        <View style={{justifyContent: 'center',padding:15,width:'65%'}}>
+                            <Text style={{fontSize: 14, color: COLORS.white,textAlign:'center'}}>{this.state.pesan}</Text>
+                           <View style={{flex: 1,justifyContent: 'flex-end'}}>
+                           
+                               {this.state.lokasi === false ?
+                                <TouchableOpacity style={{widht:'200',borderRadius:10,height:40,backgroundColor:COLORS.white,marginBottom:10,justifyContent:'center',flexDirection:'row',alignItems:'center'}} onPress={this._getLocationAsync}>
+                                <Icon name={'map-marker-alt'} size={15}
+                                                      style={{color: COLORS.primary, textAlign: 'center'}}/><Text style={{textAlign:'center',alignItems:'center',color:COLORS.primary,fontSize:17}}> Update Lokasi</Text>
+                            </TouchableOpacity>:
+                             <TouchableOpacity style={{widht:'200',borderRadius:10,height:40,backgroundColor:COLORS.white,marginBottom:10,justifyContent:'center',flexDirection:'row',alignItems:'center'}} onPress={this.showAlert}>
+                               <Icon name={'clipboard'} size={15}
+                                                      style={{color: COLORS.primary, textAlign: 'center'}}/><Text style={{textAlign:'center',alignItems:'center',color:COLORS.primary,fontSize:17}}> Ambil Absen</Text>
+                         </TouchableOpacity>
+                               }
+                            </View>
                         </View>
                     </View>
-                    {/* navigate("TakePhoto",{absen_type: this.state.absen_type, lat: this.state.lat, long: this.state.long}) */}
-                    <TouchableOpacity onPress={this.alerSelectDialog} style={styles.boxItemRed}>
-                        <Text style={styles.textBold}>Absen di Luar Kantor</Text>
-                        <Text style={{fontWeight: '200', color: '#fff', fontSize: 15}}>(Absen di luar kantor dengan
-                            mengupload bukti foto selfie atau dokumen pendukung)</Text>
-                    </TouchableOpacity>
-                </View>
-                <BottomSheet isVisible={this.state.isVisible}>
-                    {list.map((l, i) => (
-                        <ListItem key={i} containerStyle={l.containerStyle} onPress={l.onPress}>
-                            <ListItem.Content>
-                                <ListItem.Title style={l.titleStyle}>{l.title}</ListItem.Title>
-                            </ListItem.Content>
-                        </ListItem>
-                    ))}
-                </BottomSheet>
+                    <View style={styles.cardInfo}>
+                        <View style={{justifyContent: 'center',alignItems: 'center', padding: 20,backgroundColor:'white',width:'35%'}}>
+                            <Icon name={'users'} size={80}
+                                                      style={{color: COLORS.primary, textAlign: 'center'}}/>
+                              <Text style={{fontSize: 12,fontWeight:'600', color: COLORS.primary,textAlign:'center',marginTop:20}}>Absen di Luar Kantor</Text>
+                        </View>
+                        <View style={{justifyContent: 'center',padding:15,width:'65%'}}>
+                        <Text style={{fontSize: 14, color: COLORS.white,textAlign:'center',marginBottom:10}}>Silahkan pilih opsi untuk mengambil absen diluar kantor</Text>
+                        <TouchableOpacity style={{widht:'200',borderRadius:10,height:40,backgroundColor:COLORS.white,marginBottom:10,justifyContent:'center',flexDirection:'row',alignItems:'center'}} onPress={this._getLocationAsync}>
+                               <Icon name={'upload'} size={15}
+                                                      style={{color: COLORS.primary, textAlign: 'center'}}/><Text style={{textAlign:'center',alignItems:'center',color:COLORS.primary,fontSize:17}}> Upload Dokumen</Text>
+                         </TouchableOpacity>
+                         <TouchableOpacity style={{widht:'200',borderRadius:10,height:40,backgroundColor:COLORS.white,marginBottom:10,justifyContent:'center',flexDirection:'row',alignItems:'center'}} onPress={this._getLocationAsync}>
+                               <Icon name={'camera'} size={15}
+                                                      style={{color: COLORS.primary, textAlign: 'center'}}/><Text style={{textAlign:'center',alignItems:'center',color:COLORS.primary,fontSize:17}}> Kirim Foto</Text>
+                         </TouchableOpacity>
+                        </View>
+                    </View>
 
-                <BottomSheet isVisible={this.state.isVisiblePilihan}>
-                    {listPilihan.map((l, i) => (
-                        <ListItem key={i} containerStyle={l.containerStyle} onPress={l.onPress}>
-                            <ListItem.Content>
-                                <ListItem.Title style={l.titleStyle}>{l.title}</ListItem.Title>
-                            </ListItem.Content>
-                        </ListItem>
-                    ))}
-                </BottomSheet>
+                    <AwesomeAlert
+          show={this.state.showAlert}
+          showProgress={false}
+          title="Ambil Absen"
+          message="Apakah anda yakin ingin mengambil absen dalam kantor sekarang ini ?"
+          closeOnTouchOutside={true}
+          closeOnHardwareBackPress={false}
+          showCancelButton={true}
+          showConfirmButton={true}
+          cancelText="Tidak, Kembali"
+          confirmText="Ya, Tentu"
+          confirmButtonColor={COLORS.primary}
+          onCancelPressed={() => {
+            this.hideAlert();
+          }}
+          onConfirmPressed={() => {
+              this.state.absen_type == 1 ? this.tap_absen_in() : this.state.absen_type == 2 ? this.tap_absen_out() : this.state.absen_type == 3 ? this.tap_absen_check1() : this.tap_absen_check2()
+          }}
+        />
+         <AwesomeAlert
+          show={this.state.showAlertPesan}
+          showProgress={false}
+          title="Pesan"
+          message={this.state.pesanAbsen}
+          closeOnTouchOutside={true}
+          closeOnHardwareBackPress={false}
+          showCancelButton={true}
+          showConfirmButton={false}
+          cancelText="Kembali"
+          confirmButtonColor={COLORS.primary}
+          onCancelPressed={() => {
+            this.hideAlertPesan();
+          }}
+        />
             </View>
         );
     }
@@ -540,6 +542,20 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         marginTop: 20,
         backgroundColor: '#b8b5ff'
+    },
+    cardInfo: {
+        flexDirection:'row',
+        height: 220,
+        width: cardWidthInfo,
+        marginHorizontal: 5,
+        marginTop: 20,
+        borderRadius: 15,
+        elevation: 13,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.5,
+        shadowRadius: 2,
+        backgroundColor: COLORS.primary,
     },
     boxItemRed: {
         paddingVertical: 20,

@@ -6,7 +6,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 
 import Home from './src/HomeAbon'
 import Agenda from './src/AgendaAbon'
-import Riwayat from './src/RiwayatAbon'
+import Statistik from './src/Statistik'
 import Silahar from './src/silahar/Silahar'
 import RiwayatSilahar from "./src/silahar/RiwayatSilahar";
 
@@ -31,6 +31,7 @@ import {initialState, reducer} from "./src/reducers/reducer";
 
 import AsyncStorage from '@react-native-community/async-storage';
 import COLORS from './src/const/colors';
+import { Image } from 'react-native';
 
 
 const Stack = createStackNavigator();
@@ -98,10 +99,10 @@ const StackAgenda = () => (
         />
     </Stack.Navigator>
 )
-const StackRiwayat = () => (
+const StackStatistik = () => (
     <Stack.Navigator>
 
-        <Stack.Screen name="Riwayat" component={Riwayat}
+        <Stack.Screen name="Statistik" component={Statistik}
                       options={{
                           headerShown: false,
                       }}
@@ -270,15 +271,18 @@ function BottomTabStack() {
         <Tab.Navigator
             tabBarOptions={{
                 style: {
-                    paddingBottom: 15,
-                    height: 70,
+                    paddingBottom: 25,
+                    height: 80,
                     fontSize: 20,
-                    borderTopWidth: 0,
-                    elevation: 0,
+                    
                     borderTopLeftRadius: 20,
                     borderTopRightRadius: 20,
                     zIndex: 2,
-                    marginTop: -10
+                    marginTop: -10,
+                    shadowColor: '#000',
+                    shadowOffset: {width: 0, height: 2},
+                    shadowOpacity: 0.5,
+                    shadowRadius: 2,
                 },
                 activeTintColor: '#7868e6',
                 inactiveTintColor: COLORS.primary,
@@ -300,24 +304,29 @@ function BottomTabStack() {
                             ),
                         }}
             />
-            <Tab.Screen name="Riwayat" color={'#00AEEF'} component={StackRiwayat}
+            <Tab.Screen name="Riwayat" color={'#00AEEF'} component={StackStatistik}
                         options={{
-                            tabBarLabel: 'Riwayat',
+                            tabBarLabel: '',
                             tabBarIcon: ({color, size}) => (
                                 <View
                             style={{
-                                height: 60,
-                                width: 60,
+                                height: 80,
+                                width: 80,
                                 justifyContent: 'center',
                                 alignItems: 'center',
                                 backgroundColor: COLORS.white,
-                                borderColor: COLORS.primary,
-                                borderWidth: 2,
-                                borderRadius: 30,
-                                top: -15,
+                                // borderColor: COLORS.primary,
+                                // borderWidth: 2,
+                                borderRadius: 20,
+                                top: -5,
                                 elevation: 5,
+                                shadowColor: '#000',
+                                shadowOffset: {width: 0, height: 2},
+                                shadowOpacity: 0.5,
+                                shadowRadius: 2,
                             }}>
-                            <IconC name={'list-alt'} color={color} size={28}/>
+                            <Image style={{width: 40, height: 72}}
+                           source={require('./assets/logoabon.png')}/>
                         </View>
                                
                             ),

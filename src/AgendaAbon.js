@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import {Header} from "react-native-elements";
 import {LinearGradient} from "expo-linear-gradient";
 import COLORS from "./const/colors";
+import AwesomeAlert from 'react-native-awesome-alerts';
 
 class AgendaAbon extends Component {
     constructor(props) {
@@ -16,6 +17,8 @@ class AgendaAbon extends Component {
             selectedEndDate: null,
             startDate: null,
             endDate: null,
+            showAlertPesan:false,
+            pesan:''
         };
 
         this.onDateChange = this.onDateChange.bind(this);
@@ -34,11 +37,18 @@ class AgendaAbon extends Component {
         }
     }
 
+    hideAlertPesan = () => {
+        this.setState({
+            showAlertPesan: false
+        });
+    };
+
     handleSaveClick = async () => {
         if (this.state.startDate == '') {
-            Alert.alert('Silahkan pilih tanggal..', ToastAndroid.SHORT);
             this.setState({
-                isLoading: false
+                showAlertPesan:true,
+                isLoading: false,
+                pesan:'Silahkan pilih tanggal mulai'
             })
         } else {
             this.props.navigation.navigate('AjukanIzin');
@@ -59,46 +69,19 @@ class AgendaAbon extends Component {
                 <StatusBar translucent backgroundColor="rgba(0,0,0,0.4)"/>
                 <Header
                     containerStyle={{
+                        marginBottom:15,
                         height:95,
-                        backgroundColor:COLORS.white
+                        backgroundColor:COLORS.white,
+                        elevation: 1,
+                        shadowColor: '#000',
+                        shadowOffset: {width: 0, height: 1},
+                        shadowOpacity: 0.5,
+                        shadowRadius: 1,
                     }}
                     statusBarProps={{barStyle: 'light-content'}}
                     centerComponent={{text: 'Agenda', style: {color: COLORS.dark, fontSize: 16, fontWeight: 'bold'}}}
                 />
-                {/* Agenda */}
-                {/* Kalender */}
-                <View style={{
-                    paddingHorizontal: 5,
-                    marginTop:10,
-                    marginBottom:10,
-                }}>
-                    <TouchableOpacity
-                        onPress={() => {
-                            this.props.navigation.push('RiwayatIzin')
-                        }}>
-
-                       <View
-                          
-                            style={{
-                                backgroundColor:COLORS.primary,
-                                borderRadius: 10,
-                                paddingHorizontal: 20,
-                                paddingVertical: 20,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                shadowOffset: {width: 2, height: 2,},
-                                shadowColor: '#e0e0e0',
-                                shadowOpacity: 1.0,
-                                elevation: 1
-                            }}
-                           >
-                            <Icon name={'history'} size={61} style={{color: COLORS.white, textAlign: 'center'}}/>
-                            <View style={{flexShrink: 1, marginLeft: 20}}>
-                                <Text style={{fontSize: 22, color: '#fff'}}>Pilih Riwayat Izin</Text>
-                            </View>
-                        </View>
-                    </TouchableOpacity>
-                </View>
+               
                 <CalendarPicker
                     startFromMonday={true}
                     allowRangeSelection={true}
@@ -119,13 +102,11 @@ class AgendaAbon extends Component {
                         'November',
                         'Desember',
                     ]}
-                    style={{color: '#000'}}
-                    // previousTitle={<Icon name={'caret-left'} size={22} style={{color:'#00AEEF', textAlign:'center'}}/>}
+
                     previousTitle="Sebelumnya"
                     nextTitle="Berikutnya"
-
-                    todayBackgroundColor="#00AEEF"
-                    selectedDayColor="#74C6F4"
+                    todayBackgroundColor={COLORS.primary}
+                    selectedDayColor={COLORS.primary}
                     selectedDayTextColor="#fff"
                     scaleFactor={375}
                     textStyle={{
@@ -134,28 +115,28 @@ class AgendaAbon extends Component {
                     onDateChange={this.onDateChange}
                 />
                 {/* onPress={() => {this.props.navigation.push('AjukanIzin')}} */}
-                <TouchableOpacity onPress={this.handleSaveClick} style={{
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'space-between', marginTop: 20
-                }}>
-                    <View style={{
-                        paddingVertical: 10,
-                        paddingHorizontal: 10,
-                        borderWidth: 1,
-                        borderColor: '#00AEEF',
-                        backgroundColor: '#00AEEF',
-                        borderRadius: 10
-                    }}>
-                        <Text style={{textAlign: 'center', fontSize: 15, color: 'white', fontWeight: "bold"}}>Ajukan
-                            Izin</Text>
-                    </View>
-                </TouchableOpacity>
-                {/*{this.state.startDate === '' ? <View></View>: <View style={{padding: 6}}>*/}
-                {/*    <Text style={{padding: 6}}>Tanggal Mulai: {this.state.startDate}</Text>*/}
-                {/*    <Text style={{padding: 6}}>Tanggal Akhir : {this.state.endDate}</Text>*/}
-                {/*</View>}*/}
+                <View style={{flex: 1,justifyContent: 'flex-end',marginBottom:30,padding:15}}>
+                    <TouchableOpacity style={{widht:'200',borderRadius:10,height:60,backgroundColor:COLORS.primary,marginBottom:10,justifyContent:'center',flexDirection:'row',alignItems:'center'}} onPress={this.handleSaveClick}>
+                        <Icon name={'clipboard'} size={15} style={{color: COLORS.white, textAlign: 'center'}}/>
+                        <Text style={{textAlign:'center',alignItems:'center',color:COLORS.white,fontSize:17}}> Ajukan Izin</Text>
+                    </TouchableOpacity>
+                </View>
 
+                <AwesomeAlert
+                    show={this.state.showAlertPesan}
+                    showProgress={false}
+                    title="Pesan"
+                    message={this.state.pesan}
+                    closeOnTouchOutside={true}
+                    closeOnHardwareBackPress={false}
+                    showCancelButton={true}
+                    showConfirmButton={false}
+                    cancelText="Kembali"
+                    confirmButtonColor={COLORS.primary}
+                    onCancelPressed={
+                        () => { this.hideAlertPesan();
+                    }}
+                />
             </View>
         );
     }

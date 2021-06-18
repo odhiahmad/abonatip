@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "aboniospesel",
-    "slug": "aboniospesel",
+    "name": "abonatip",
+    "slug": "abonatip",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.odhiahmad.aboniospesel"
+      "package": "com.odhiahmad.abonatip"
     },
     "web": {
       "favicon": "./assets/favicon.png"
